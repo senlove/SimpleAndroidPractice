@@ -29,6 +29,11 @@ android {
             path "CMakeLists.txt"
         }
     }
+    //支持databind
+    dataBinding {
+        enabled = true
+    }
+
 }
 
 dependencies {
