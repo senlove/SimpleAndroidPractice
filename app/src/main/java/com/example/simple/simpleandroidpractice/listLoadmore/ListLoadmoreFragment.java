@@ -24,7 +24,8 @@ import butterknife.BindView;
 /**
  * 1.显示加载更多的ui效果
  * 2.提供加载更多的回调接口进行数据的加载
- * 3.对于RecyclerView不同的LayoutManage提供加载功能
+ * 3.加载完成后隐藏ui效果
+ * 4.对于RecyclerView不同的LayoutManage提供加载功能
  *
  * 面临的情况
  * RecyclerView 嵌套在scrollview的情况
@@ -35,6 +36,8 @@ public class ListLoadmoreFragment extends BaseFragment{
 
     private static final String TAG = "ListLoadmoreFragment";
 
+    @BindView(R.id.ll_rv_container)
+    LinearLayout mLlRvContainer;
     @BindView(R.id.rv_list_load_more)
     RecyclerView mRv;
     private ArrayList<String> mDataList;
@@ -51,6 +54,9 @@ public class ListLoadmoreFragment extends BaseFragment{
 
     @Override
     protected void init(Bundle savedInstanceState) {
+
+        final View loadMoreView = LayoutInflater.from(getActivity()).inflate(R.layout.item_load_more, null, false);
+
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         mRv.setLayoutManager(linearLayoutManager);
@@ -75,12 +81,10 @@ public class ListLoadmoreFragment extends BaseFragment{
                         int lastVisibleItemPosition = innerLinearLayoutManager.findLastVisibleItemPosition();
                         int lastCompletelyVisibleItemPosition = innerLinearLayoutManager.findLastCompletelyVisibleItemPosition();
                         int totalItemCount = innerLinearLayoutManager.getItemCount();
-                        Log.i(TAG, "lastVisibleItemPosition = "+lastVisibleItemPosition);
-                        Log.i(TAG, "lastCompletelyVisibleItemPosition = "+lastCompletelyVisibleItemPosition);
-                        Log.i(TAG, "totalItemCount = "+totalItemCount);
                         // 判断是否滚动到底部，并且是向右滚动
                         if (lastCompletelyVisibleItemPosition == (totalItemCount - 1)) {
-                            Log.i(TAG, "滑动到最后");
+//                            mLlRvContainer.removeView(loadMoreView);
+//                            mLlRvContainer.addView(loadMoreView);
                             //显示loading的UI
                             //加载更多功能的代码
                         }
@@ -93,6 +97,9 @@ public class ListLoadmoreFragment extends BaseFragment{
                 super.onScrolled(recyclerView, dx, dy);
             }
         });
+
+        mLlRvContainer.addView(loadMoreView);
+
     }
 
     static class MyListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
@@ -104,9 +111,9 @@ public class ListLoadmoreFragment extends BaseFragment{
 
         @Override
         public int getItemViewType(int position) {
-            if(position == mList.size()){
-                return TYPE_LOAD_MORE;
-            }
+//            if(position == mList.size()){
+//                return TYPE_LOAD_MORE;
+//            }
             return super.getItemViewType(position);
         }
 
@@ -114,29 +121,31 @@ public class ListLoadmoreFragment extends BaseFragment{
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View view;
-            if(viewType == TYPE_LOAD_MORE){
-                view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_load_more, parent, false);
-                return new MyListLoadMoreViewHolder(view);
-            }
+//            if(viewType == TYPE_LOAD_MORE){
+//                view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_load_more, parent, false);
+//                return new MyListLoadMoreViewHolder(view);
+//            }
             view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_list, parent, false);
             return new MyListViewHolder(view);
         }
 
         @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-            if(TYPE_LOAD_MORE != getItemViewType(position)){
+//            if(TYPE_LOAD_MORE != getItemViewType(position)){
                 MyListViewHolder myListViewHolder = (MyListViewHolder) holder;
                 String item = mList.get(position);
                 myListViewHolder.mTv.setText(item);
-            } else {
-                MyListLoadMoreViewHolder myListLoadMoreViewHolder = (MyListLoadMoreViewHolder) holder;
-                myListLoadMoreViewHolder.mRlLoadmoreContainer.setVisibility(View.GONE);
-            }
+//            }
+// else {
+//                MyListLoadMoreViewHolder myListLoadMoreViewHolder = (MyListLoadMoreViewHolder) holder;
+//                myListLoadMoreViewHolder.mRlLoadmoreContainer.setVisibility(View.GONE);
+//            }
         }
 
         @Override
         public int getItemCount() {
-            return null == mList ? 0 : mList.size() + 1;
+//            return null == mList ? 0 : mList.size() + 1;
+            return null == mList ? 0 : mList.size();
         }
 
         public List<String> getList() {
