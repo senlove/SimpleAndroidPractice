@@ -1,6 +1,7 @@
 package com.example.simple.simpleandroidpractice.loading;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
 
@@ -22,6 +23,7 @@ public class LoadingFragment extends BaseFragment {
     Button mBtnStart;
     @BindView(R.id.loading_view)
     LoadingView mLoadingView;
+    private Handler mHandler;
 
     public static LoadingFragment newInstance() {
         LoadingFragment fragment = new LoadingFragment();
@@ -42,7 +44,19 @@ public class LoadingFragment extends BaseFragment {
     void onViewClick(View view){
         switch (view.getId()){
             case R.id.btn_download_start:
-                mLoadingView.start();
+                mHandler = new Handler();
+                mHandler.postDelayed(new Runnable() {
+                    int value = 0;
+                    @Override
+                    public void run() {
+                        if(100 == value){
+                            return;
+                        }
+                        value += 5;
+                        mLoadingView.progress(value);
+                        mHandler.postDelayed(this, 500);
+                    }
+                }, 500);
                 break;
         }
     }
