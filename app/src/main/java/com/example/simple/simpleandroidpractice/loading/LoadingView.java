@@ -3,11 +3,11 @@ package com.example.simple.simpleandroidpractice.loading;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
-import android.animation.TypeEvaluator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.RectF;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -40,12 +40,20 @@ public class LoadingView extends View {
     private ValueAnimator mVerticalAnimator;
 
     private boolean isInitValue;
+    private boolean isDrawArrow = true;
     private boolean isDrawPercentCircle;
+    private boolean isDrawPoint;
+    private boolean isDrawSuccessTag;
+    private boolean isNeedStartPoinAnimator;
     private boolean isFinishAnimator;
     private float mLineLength;
     private ValueAnimator mHideArrowAnimator;
+    private ValueAnimator mPointAnimator;
+    private ValueAnimator mSuccessLeftLineAnimator;
+    private ValueAnimator mSuccessRightLineAnimator;
     private float mFormatRadius;
     private AnimatorSet mAnimatorSet;
+    private AnimatorSet mPointSuccessAnimatorSet;
     private float mLeftLineStartX;
     private float mLeftLineStartY;
     private float mRightLineStartX;
@@ -59,6 +67,25 @@ public class LoadingView extends View {
     private float mRightLineInitX;
     private float mRightLineInitY;
     private float mPercentAngle;
+    private float mPointAngle = 270;
+    private float mSuccessPointOneX;
+    private float mSuccessPointOneY;
+    private float mLeftPointArcCrossX;
+    private float mLeftPointArcCrossY;
+    private float mRightPointArcCrossX;
+    private float mRightPointArcCrossY;
+    private float mRightSuccessLineK;
+    private float mRightSuccessLineB;
+    private float mSuccessPointTwoX;
+    private float mSuccessPointTwoY;
+    private float mSuccessPointThreeX;
+    private float mSuccessPointThreeY;
+    private Path mSuccessPath;
+    private float mArcPointX;
+    private float mArcPointY;
+    private float mLeftSuccessLineK;
+    private float mLeftSuccessLineB;
+
 
     public LoadingView(Context context) {
         this(context, null);
@@ -93,16 +120,13 @@ public class LoadingView extends View {
         mPointPaint.setColor(getResources().getColor(R.color.colorAccent));
         mLinePaint.setAntiAlias(true);
 
+        mSuccessPath = new Path();
+
         mAnimatorSet = new AnimatorSet();
+        mPointSuccessAnimatorSet = new AnimatorSet();
 
         mVerticalAnimator = new ValueAnimator();
         mVerticalAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
-        mVerticalAnimator.setEvaluator(new TypeEvaluator() {
-            @Override
-            public Object evaluate(float fraction, Object startValue, Object endValue) {
-                return null;
-            }
-        });
         mVerticalAnimator.setDuration(100);
         mVerticalAnimator.setRepeatMode(ValueAnimator.REVERSE);
         mVerticalAnimator.setRepeatCount(1);
@@ -136,6 +160,47 @@ public class LoadingView extends View {
             }
         });
 
+        mPointAnimator = new ValueAnimator();
+        mPointAnimator.setDuration(500);
+        mPointAnimator.setFloatValues(mPointAngle, mPointAngle - 60);
+        mPointAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                mPointAngle = (float) animation.getAnimatedValue();
+                mArcPointX = mRadius + (float) (mRadius * Math.cos(mPointAngle*Math.PI/180));
+                mArcPointY = mRadius + (float) (mRadius * Math.sin(mPointAngle*Math.PI/180));
+                if(1 == animation.getAnimatedFraction()){
+                    mSuccessPointOneX = mArcPointX;
+                    mSuccessPointOneY = mArcPointY;
+                }
+                invalidate();
+            }
+        });
+
+        mSuccessLeftLineAnimator = new ValueAnimator();
+        mSuccessLeftLineAnimator.setDuration(500);
+        mSuccessLeftLineAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+        mSuccessLeftLineAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                isDrawPoint = false;
+                isDrawSuccessTag = true;
+                mSuccessPointOneX = (float) animation.getAnimatedValue();
+                mSuccessPointOneY = mSuccessPointOneX*mLeftSuccessLineK + mLeftSuccessLineB;
+                invalidate();
+            }
+        });
+        mSuccessRightLineAnimator = new ValueAnimator();
+        mSuccessRightLineAnimator.setDuration(500);
+        mSuccessRightLineAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+        mSuccessRightLineAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                mSuccessPointThreeX = (float) animation.getAnimatedValue();
+                mSuccessPointThreeY = mSuccessPointThreeX*mRightSuccessLineK + mRightSuccessLineB;
+            }
+        });
+
     }
 
     @Override
@@ -162,14 +227,64 @@ public class LoadingView extends View {
             mRightLineInitX = mRightLineStartX;
             mRightLineInitY = mRightLineStartY;
 
+            //点初始位置
+            mPointAngle = 270;
+
+            //勾三点的位置
+            //勾折点的位置
+            float successLineCrossX = mRadius - getResources().getDimension(R.dimen.dp_12);
+            float successLineCrossY = mRadius + getResources().getDimension(R.dimen.dp_20);
+
+            //勾左边点与弧线交叉的位置
+            mLeftPointArcCrossX = mRadius + (float) (mRadius * Math.cos(210*Math.PI/180));
+            mLeftPointArcCrossY = mRadius + (float) (mRadius * Math.sin(210*Math.PI/180));
+            mLeftSuccessLineK = (successLineCrossY - mLeftPointArcCrossY)/(successLineCrossX - mLeftPointArcCrossX);
+            mLeftSuccessLineB = mLeftPointArcCrossY - mLeftSuccessLineK* mLeftPointArcCrossX;
+
+            //勾右边点与弧线交叉的位置
+            mRightPointArcCrossX = mRadius+(float) (mRadius * Math.cos(330*Math.PI/180));
+            mRightPointArcCrossY = mRadius+(float) (mRadius * Math.sin(330*Math.PI/180));
+            mRightSuccessLineK = (mRightPointArcCrossY - successLineCrossY)/(mRightPointArcCrossX - successLineCrossX);
+            mRightSuccessLineB = mRightPointArcCrossY - mRightSuccessLineK*mRightPointArcCrossX;
+
+            mSuccessPointOneX = mLeftPointArcCrossX;
+            mSuccessPointOneY = mLeftPointArcCrossY;
+            mSuccessPointTwoX = successLineCrossX;
+            mSuccessPointTwoY = successLineCrossY;
+            mSuccessPointThreeX = mRightPointArcCrossX - getResources().getDimension(R.dimen.dp_15);
+            mSuccessPointThreeY = mRightSuccessLineK*mRightPointArcCrossX + mRightSuccessLineB;
         }
         drawBackgroundCircle(canvas);
+        if(isDrawArrow){
+            drawArrow(canvas);
+        }
 
         if(isDrawPercentCircle){
             drawPercentCircle(canvas);
-        } else {
-            drawArrow(canvas);
         }
+
+        if(isNeedStartPoinAnimator){
+            isNeedStartPoinAnimator = false;
+            isDrawPercentCircle = false;
+            isDrawPoint = true;
+
+            mSuccessLeftLineAnimator.setFloatValues(mLeftPointArcCrossX, mLeftPointArcCrossX + getResources().getDimension(R.dimen.dp_25),
+                    mLeftPointArcCrossX + getResources().getDimension(R.dimen.dp_15));
+            mSuccessRightLineAnimator.setFloatValues(mRightPointArcCrossX - getResources().getDimension(R.dimen.dp_15), mRightPointArcCrossX,
+                    mRightPointArcCrossX - getResources().getDimension(R.dimen.dp_10));
+            mPointSuccessAnimatorSet. play(mSuccessLeftLineAnimator).with(mSuccessRightLineAnimator).after(mPointAnimator);
+            mPointSuccessAnimatorSet.start();
+        }
+
+        if(isDrawPoint){
+            drawPoint(canvas);
+        }
+
+        if(isDrawSuccessTag) {
+            drawSuccessTag(canvas);
+        }
+
+//        drawFailedTag(canvas);
     }
 
     private void drawBackgroundCircle(Canvas canvas) {
@@ -198,6 +313,41 @@ public class LoadingView extends View {
         mBackGroundCiclePaint.setColor(getResources().getColor(R.color.color_ffffff));
         RectF cicleRectF = initCircleRectF();
         canvas.drawArc(cicleRectF, -90, mPercentAngle, false, mBackGroundCiclePaint);
+    }
+
+
+    private void drawPoint(Canvas canvas) {
+        canvas.drawPoint(mArcPointX, mArcPointY, mLinePaint);
+    }
+
+    private void drawSuccessTag(Canvas canvas) {
+
+        mSuccessPath.reset();
+        mSuccessPath.moveTo(mSuccessPointOneX, mSuccessPointOneY);
+        mSuccessPath.lineTo(mSuccessPointTwoX, mSuccessPointTwoY);
+        mSuccessPath.lineTo(mSuccessPointThreeX, mSuccessPointThreeY);
+
+        canvas.drawPath(mSuccessPath, mLinePaint);
+    }
+
+    private void drawFailedTag(Canvas canvas) {
+        Path pathOne = new Path();
+        Path pathTwo = new Path();
+        float pointOneX = mRadius - getResources().getDimension(R.dimen.dp_25);
+        float pointOneY = mRadius - getResources().getDimension(R.dimen.dp_25);
+        float pointTwoX = mRadius + getResources().getDimension(R.dimen.dp_25);
+        float pointTwoY = mRadius + getResources().getDimension(R.dimen.dp_25);
+        float pointThreeX = mRadius + getResources().getDimension(R.dimen.dp_25);
+        float pointThreeY = mRadius - getResources().getDimension(R.dimen.dp_25);
+        float pointFourX = mRadius - getResources().getDimension(R.dimen.dp_25);
+        float pointFourY = mRadius + getResources().getDimension(R.dimen.dp_25);
+
+        pathOne.moveTo(pointOneX, pointOneY);
+        pathOne.lineTo(pointTwoX, pointTwoY);
+        pathTwo.moveTo(pointThreeX, pointThreeY);
+        pathTwo.lineTo(pointFourX, pointFourY);
+        canvas.drawPath(pathOne, mLinePaint);
+        canvas.drawPath(pathTwo, mLinePaint);
     }
 
 
@@ -236,6 +386,7 @@ public class LoadingView extends View {
         }
 
         isDrawPercentCircle = true;
+        isDrawArrow = false;
         if(value < 0){
             value = 0;
         }
@@ -245,6 +396,10 @@ public class LoadingView extends View {
         }
         float progress = value / mMaxValue;
         mPercentAngle = 360 * progress;
+
+        if(mMaxValue == value){
+            isNeedStartPoinAnimator = true;
+        }
         invalidate();
     }
 

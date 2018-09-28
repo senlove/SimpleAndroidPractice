@@ -54,9 +54,9 @@ public class LoadingFragment extends BaseFragment {
                         }
                         value += 5;
                         mLoadingView.progress(value);
-                        mHandler.postDelayed(this, 500);
+                        mHandler.postDelayed(this, 100);
                     }
-                }, 500);
+                }, 100);
                 break;
         }
     }
