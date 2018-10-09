@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
+import com.example.simple.simpleandroidpractice.knowledgePoint.Animate.ViewAnimateFragment;
 import com.example.simple.simpleandroidpractice.listLoadmore.ListLoadmoreFragment;
 import com.example.simple.simpleandroidpractice.loading.LoadingFragment;
 import com.example.simple.simpleandroidpractice.videoPlay.VideoPlayActivity;
@@ -19,7 +20,8 @@ public class MainActivity extends SupportActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        LoadingFragment fragment = LoadingFragment.newInstance();
+//        LoadingFragment fragment = LoadingFragment.newInstance();
+        ViewAnimateFragment fragment = ViewAnimateFragment.newInstance();
         loadRootFragment(R.id.fl_main, fragment);
 
 //        Intent intent = VideoPlayActivity.newIntent(MainActivity.this);
